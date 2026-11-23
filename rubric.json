@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "project": "generic",
+  "checks": [
+    {
+      "id": "INPUT-01", "title": "Input contract validation", "paths": ["*"],
+      "instruction": "Does a concrete path consume externally supplied input in a type, range or shape the visible contract does not permit, without a guard? Use only visible callers and contracts. A missing caller is insufficient evidence, not a proven bug.",
+      "violation": "An allowed external input reaches an incompatible operation without the required guard.",
+      "no_violation": "The relevant input is guarded before use, or the visible path has no externally supplied input.",
+      "insufficient": "The producer, caller or contract needed to prove the path is missing."
+    },
+    {
+      "id": "PATH-01", "title": "Filesystem boundary", "paths": ["*"],
+      "instruction": "Can an untrusted remote caller control a path or filename that reaches file access outside the caller's allowed boundary? Distinguish remote input from a local operator intentionally choosing a file. Do not assume a missing caller is remote.",
+      "violation": "A visible untrusted input bypasses the intended filesystem boundary and reaches outside it.",
+      "no_violation": "The path is confined to the allowed boundary or comes only from an authorized local operator/internal constant.",
+      "insufficient": "The input origin, authorization contract or boundary implementation is missing."
+    },
+    {
+      "id": "SHELL-01", "title": "Command injection", "paths": ["*"],
+      "instruction": "Does visible untrusted data become executable shell syntax rather than a literal argument? Check the actual subprocess/shell API and data flow. Passing data in an argument array to a non-shell API is not shell injection by itself.",
+      "violation": "Untrusted input is interpolated into executable shell syntax on a reachable path.",
+      "no_violation": "Data is passed as literal arguments without shell interpretation, safely validated, or no shell execution occurs.",
+      "insufficient": "The command construction or execution API is not visible."
+    },
+    {
+      "id": "SECRET-01", "title": "Credential disclosure", "paths": ["*"],
+      "instruction": "Does a concrete visible path disclose a credential value to logs, responses, persisted reports or an unintended recipient? Variable names, empty placeholders and intentional fictional test data alone do not prove a disclosure.",
+      "violation": "A credential value visibly reaches an unintended disclosure sink without redaction or access restriction.",
+      "no_violation": "The relevant value is redacted/confined, or no credential disclosure path is present.",
+      "insufficient": "The value origin or disclosure sink needed to establish exposure is not visible."
+    },
+    {
+      "id": "RETRY-01", "title": "Duplicate external side effects", "paths": ["*"],
+      "instruction": "When an external side-effecting request may already have been accepted, can the visible retry path submit the same operation again without an idempotency guarantee or explicit authorization? Polling an existing operation is not a new submission.",
+      "violation": "An ambiguous accepted operation can be automatically submitted again without a visible deduplication contract.",
+      "no_violation": "The path reuses an existing operation, uses a documented idempotency guarantee, or has no such retry.",
+      "insufficient": "The side-effect or idempotency contract is not visible."
+    },
+    {
+      "id": "ERROR-01", "title": "Failure represented as success", "paths": ["*"],
+      "instruction": "Does the visible error handling represent a failed operation as completed success, causing a caller to rely on missing or invalid output? A documented optional feature with an explicit unavailable result is not a hidden success.",
+      "violation": "A failure is hidden as successful output on a concrete visible path.",
+      "no_violation": "Failure remains observable or is handled by an explicit documented optional contract.",
+      "insufficient": "The return contract or consuming caller is needed to decide."
+    },
+    {
+      "id": "STATE-01", "title": "Concurrent state integrity", "paths": ["*"],
+      "instruction": "Does a concrete concurrent or interrupted path lose a state update or publish a partial result that a caller treats as complete? Look for actual read-modify-write and publication boundaries; do not infer a race only because a lock is outside the excerpt.",
+      "violation": "The supplied interleaving or interruption can concretely overwrite a valid update or publish an incomplete result.",
+      "no_violation": "The visible path serializes or atomically publishes the relevant update, or has no shared mutable state.",
+      "insufficient": "The locking, publication or caller contract is outside the supplied evidence."
+    },
+    {
+      "id": "LOGIC-01", "title": "Concrete value-flow error", "paths": ["*"],
+      "instruction": "For an input explicitly allowed by the visible contract, is there a concrete path that consumes a missing value or incompatible type and breaks execution? Do not flag style preferences, invented requirements or intentionally failing test fixtures.",
+      "violation": "An allowed input and visible value flow demonstrate a reproducible execution error.",
+      "no_violation": "The visible value uses agree with their contracts and guards.",
+      "insufficient": "Required input or producer contracts are missing."
+    }
+  ]
+}
